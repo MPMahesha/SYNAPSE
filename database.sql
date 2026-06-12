@@ -1,7 +1,7 @@
--- NeuroSyncBCI Database Schema & Seed Data
-DROP DATABASE IF EXISTS neurosync_bci_db;
-CREATE DATABASE neurosync_bci_db;
-USE neurosync_bci_db;
+-- SYNAPSE Database Schema & Seed Data
+DROP DATABASE IF EXISTS synapse_db;
+CREATE DATABASE synapse_db;
+USE synapse_db;
 
 -- 1. System Registration Keys
 CREATE TABLE system_keys (
@@ -70,8 +70,8 @@ ON DUPLICATE KEY UPDATE role=VALUES(role);
 
 -- Initial Administrative Root Identities
 INSERT INTO users (email, password, role) VALUES 
-('mahesha@neurosync.com', 'Admin123!', 'CLINICIAN'),
-('mahesha.eng@neurosync.com', 'Admin123!', 'ENGINEER')
+('mahesha@synapse.com', 'Admin123!', 'CLINICIAN'),
+('mahesha.eng@synapse.com', 'Admin123!', 'ENGINEER')
 ON DUPLICATE KEY UPDATE password=VALUES(password), role=VALUES(role);
 
 -- Patients

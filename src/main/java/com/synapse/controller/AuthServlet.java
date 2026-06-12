@@ -1,7 +1,7 @@
-package com.neurosync.controller;
+package com.synapse.controller;
 
-import com.neurosync.service.AuthService;
-import com.neurosync.util.DBConnection;
+import com.synapse.service.AuthService;
+import com.synapse.util.DBConnection;
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDateTime;

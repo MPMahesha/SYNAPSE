@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Clinician Dashboard | NeuroSyncBCI</title>
+    <title>Clinician Dashboard | SYNAPSE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -13,7 +13,7 @@
 
 <nav class="navbar navbar-expand-lg border-bottom border-secondary mb-4">
     <div class="container-fluid px-4">
-        <a class="navbar-brand text-neon-purple" href="#">NeuroSync<span style="color:var(--electric-cyan)">BCI</span></a>
+        <a class="navbar-brand neon-text-purple" href="#">SYNAPSE</a>
         <div class="ms-auto">
             <span class="text-muted me-3">Clinician: <span class="text-neon-cyan">${user}</span></span>
             <a href="${pageContext.request.contextPath}/auth/logout" class="btn btn-outline-danger btn-sm">Terminate Session</a>

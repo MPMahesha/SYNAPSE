@@ -3,7 +3,7 @@ setlocal
 
 :: --- Configuration ---
 set "PROJECT_ROOT=D:\Vacation_Projects\NeuroSyncBCI"
-set "WAR_FILE=D:\Vacation_Projects\NeuroSyncBCI\target\NeuroSyncBCI.war"
+set "WAR_FILE=D:\Vacation_Projects\NeuroSyncBCI\target\SYNAPSE.war"
 set "TOMCAT_WEBAPPS=D:\codes\apache-tomcat-10.1.55-windows-x64\apache-tomcat-10.1.55\webapps\"
 set "TOMCAT_BIN=D:\codes\apache-tomcat-10.1.55-windows-x64\apache-tomcat-10.1.55\bin\"
 set "JAVA_HOME=C:\Program Files\Java\latest\jdk-25"
@@ -35,8 +35,8 @@ start "" startup.bat
 
 echo.
 echo ======================================================
-echo  NeuroSyncBCI Deployment Complete
-echo  Access at: http://localhost:8080/NeuroSyncBCI/
+echo  SYNAPSE Deployment Complete
+echo  Access at: http://localhost:8080/SYNAPSE/
 echo ======================================================
 echo.
 

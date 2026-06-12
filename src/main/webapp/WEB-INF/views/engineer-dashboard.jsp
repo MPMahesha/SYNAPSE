@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Engineer Dashboard | Hardware Analytics</title>
+    <title>Engineer Dashboard | SYNAPSE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,7 +12,7 @@
 
 <nav class="navbar navbar-expand-lg border-bottom border-secondary mb-4">
     <div class="container-fluid px-4">
-        <a class="navbar-brand text-neon-cyan" href="#">NeuroSync<span style="color:var(--neon-purple)">ENG</span></a>
+        <a class="navbar-brand neon-text-cyan" href="#">SYNAPSE</a>
         <div class="ms-auto">
             <span class="text-muted me-3">System Engineer: <span class="text-neon-purple">${user}</span></span>
             <a href="${pageContext.request.contextPath}/auth/logout" class="btn btn-outline-danger btn-sm">Terminate Session</a>

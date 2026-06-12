@@ -1,6 +1,6 @@
-package com.neurosync.service;
+package com.synapse.service;
 
-import com.neurosync.util.DBConnection;
+import com.synapse.util.DBConnection;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.time.LocalDateTime;
