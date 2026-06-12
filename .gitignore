@@ -1,0 +1,21 @@
+target/
+*.class
+*.log
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# System
+Thumbs.db
+Desktop.ini
+.DS_Store
