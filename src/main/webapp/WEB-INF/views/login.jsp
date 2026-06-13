@@ -38,9 +38,9 @@
 
                 <form action="${pageContext.request.contextPath}/auth/login" method="POST" id="loginForm">
                     <div class="mb-3">
-                        <label class="form-label text-cyan-vis">Neural-ID (Username)</label>
-                        <input type="text" name="username" class="form-control" required 
-                               placeholder="Enter your username">
+                        <label class="form-label text-cyan-vis">Neural-ID (Email)</label>
+                        <input type="email" name="email" class="form-control" required 
+                               placeholder="user@synapse.com">
                     </div>
                     <div class="mb-4">
                         <label class="form-label text-cyan-vis">Access Key (Password)</label>

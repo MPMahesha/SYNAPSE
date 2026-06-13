@@ -11,11 +11,11 @@ CREATE TABLE system_keys (
     is_used BOOLEAN DEFAULT FALSE
 );
 
--- 2. Users Table
+-- 2. Users Table (Aligned with exact constraints: id, email, password, role)
 CREATE TABLE users (
-    username VARCHAR(50) PRIMARY KEY,
-    password_hash VARCHAR(255) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     role ENUM('CLINICIAN', 'ENGINEER') NOT NULL,
     otp VARCHAR(10),
     otp_expiry TIMESTAMP NULL
@@ -43,10 +43,10 @@ INSERT INTO system_keys (key_value, role) VALUES
 ('NS-ENG-2026-B42', 'ENGINEER');
 
 -- Seed Credentials (Passwords are updated to secure strings)
-INSERT INTO users (username, password_hash, email, role) VALUES 
-('mahesha@neurosync.com', 'N3uroSync_Mahesha_2026!', 'mahesha@neurosync.com', 'CLINICIAN'),
-('engineer@mahesha.com', 'BCI_Telemetry_Core_2026!', 'engineer@mahesha.com', 'ENGINEER')
-ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash);
+INSERT INTO users (email, password, role) VALUES 
+('mahesha@neurosync.com', 'N3uroSync_Mahesha_2026!', 'CLINICIAN'),
+('engineer@mahesha.com', 'BCI_Telemetry_Core_2026!', 'ENGINEER')
+ON DUPLICATE KEY UPDATE password=VALUES(password);
 
 -- Initial Patients
 INSERT INTO patients (id, full_name, clinical_status) VALUES 

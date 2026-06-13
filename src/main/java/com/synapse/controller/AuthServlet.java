@@ -39,31 +39,35 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        String username = request.getParameter("username");
+        String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (isInvalid(username) || isInvalid(password)) {
+        if (isInvalid(email) || isInvalid(password)) {
             forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Credentials cannot be empty");
             return;
         }
 
         try {
-            String query = "SELECT role, email FROM users WHERE (username = ? OR email = ?) AND password_hash = ?";
+            // Aligned with (id, email, password, role) schema
+            String query = "SELECT email, password, role FROM users WHERE email = ?";
             try (Connection conn = DBConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(query)) {
-                ps.setString(1, username);
-                ps.setString(2, username);
-                ps.setString(3, password);
+                ps.setString(1, email);
                 ResultSet rs = ps.executeQuery();
                 
                 if (rs.next()) {
-                    HttpSession session = request.getSession(true);
-                    String role = rs.getString("role");
-                    session.setAttribute("user", rs.getString("email"));
-                    session.setAttribute("username", username);
-                    session.setAttribute("role", role);
+                    String storedPassword = rs.getString("password");
+                    String role = rs.getString("role"); // ENUM: 'CLINICIAN' or 'ENGINEER'
                     
-                    response.sendRedirect(request.getContextPath() + ("/CLINICIAN".equalsIgnoreCase(role) ? "/dashboard/clinician" : "/dashboard/engineer"));
+                    if (storedPassword.equals(password)) {
+                        HttpSession session = request.getSession(true);
+                        session.setAttribute("user", email);
+                        session.setAttribute("role", role);
+                        
+                        response.sendRedirect(request.getContextPath() + ("/CLINICIAN".equalsIgnoreCase(role) ? "/dashboard/clinician" : "/dashboard/engineer"));
+                    } else {
+                        forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid security credentials");
+                    }
                 } else {
                     forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid security credentials");
                 }
@@ -93,15 +97,14 @@ public class AuthServlet extends HttpServlet {
                 String otp = authService.generateNumericOTP(6);
                 LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
 
-                String query = "INSERT INTO users (username, email, password_hash, role, otp, otp_expiry) VALUES (?, ?, ?, ?, ?, ?)";
+                String query = "INSERT INTO users (email, password, role, otp, otp_expiry) VALUES (?, ?, ?, ?, ?)";
                 try (Connection conn = DBConnection.getConnection();
                      PreparedStatement ps = conn.prepareStatement(query)) {
-                    ps.setString(1, username);
-                    ps.setString(2, email);
-                    ps.setString(3, password);
-                    ps.setString(4, role);
-                    ps.setString(5, otp);
-                    ps.setTimestamp(6, Timestamp.valueOf(expiry));
+                    ps.setString(1, email);
+                    ps.setString(2, password);
+                    ps.setString(3, role);
+                    ps.setString(4, otp);
+                    ps.setTimestamp(5, Timestamp.valueOf(expiry));
                     ps.executeUpdate();
 
                     System.out.println("[2FA EMULATION] OTP for " + email + ": " + otp);
