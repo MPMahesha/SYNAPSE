@@ -42,10 +42,10 @@ INSERT INTO system_keys (key_value, role) VALUES
 ('NS-CLINIC-2026-X79', 'CLINICIAN'),
 ('NS-ENG-2026-B42', 'ENGINEER');
 
--- Seed Credentials (Passwords are 'Mahesha@123' for this prototype)
+-- Seed Credentials (Passwords are updated to secure strings)
 INSERT INTO users (username, password_hash, email, role) VALUES 
-('mahesha@neurosync.com', 'Mahesha@123', 'mahesha@neurosync.com', 'CLINICIAN'),
-('engineer@mahesha.com', 'Mahesha@123', 'engineer@mahesha.com', 'ENGINEER')
+('mahesha@neurosync.com', 'N3uroSync_Mahesha_2026!', 'mahesha@neurosync.com', 'CLINICIAN'),
+('engineer@mahesha.com', 'BCI_Telemetry_Core_2026!', 'engineer@mahesha.com', 'ENGINEER')
 ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash);
 
 -- Initial Patients

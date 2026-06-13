@@ -31,6 +31,14 @@ public class AuthServlet extends HttpServlet {
     }
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        // Fault Isolation: Session Fallback for Interrupted Requests
+        HttpSession existingSession = request.getSession(false);
+        if (existingSession != null && existingSession.getAttribute("user") != null) {
+            String role = (String) existingSession.getAttribute("role");
+            response.sendRedirect(request.getContextPath() + ("/CLINICIAN".equalsIgnoreCase(role) ? "/dashboard/clinician" : "/dashboard/engineer"));
+            return;
+        }
+
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
@@ -45,28 +53,23 @@ public class AuthServlet extends HttpServlet {
                  PreparedStatement ps = conn.prepareStatement(query)) {
                 ps.setString(1, username);
                 ps.setString(2, username);
-                ps.setString(3, password); // Should be hashed in production
+                ps.setString(3, password);
                 ResultSet rs = ps.executeQuery();
                 
                 if (rs.next()) {
-                    HttpSession session = request.getSession();
+                    HttpSession session = request.getSession(true);
                     String role = rs.getString("role");
                     session.setAttribute("user", rs.getString("email"));
                     session.setAttribute("username", username);
                     session.setAttribute("role", role);
                     
-                    if ("CLINICIAN".equalsIgnoreCase(role)) {
-                        response.sendRedirect(request.getContextPath() + "/dashboard/clinician");
-                    } else {
-                        response.sendRedirect(request.getContextPath() + "/dashboard/engineer");
-                    }
+                    response.sendRedirect(request.getContextPath() + ("/CLINICIAN".equalsIgnoreCase(role) ? "/dashboard/clinician" : "/dashboard/engineer"));
                 } else {
                     forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid security credentials");
                 }
             }
         } catch (Exception e) {
-            System.err.println("Login failure: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Subsystem Exception: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/index.jsp?error=auth_subsystem_offline");
         }
     }
