@@ -31,76 +31,88 @@ public class AuthServlet extends HttpServlet {
     }
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        String email = request.getParameter("email");
+        String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-        if (isInvalid(email) || isInvalid(password)) {
-            forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Fields cannot be null or empty");
+        if (isInvalid(username) || isInvalid(password)) {
+            forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Credentials cannot be empty");
             return;
         }
 
-        String query = "SELECT role FROM users WHERE email = ? AND password = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, email);
-            ps.setString(2, password);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                HttpSession session = request.getSession();
-                String role = rs.getString("role");
-                session.setAttribute("user", email);
-                session.setAttribute("role", role);
+        try {
+            String query = "SELECT role, email FROM users WHERE (username = ? OR email = ?) AND password_hash = ?";
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(query)) {
+                ps.setString(1, username);
+                ps.setString(2, username);
+                ps.setString(3, password); // Should be hashed in production
+                ResultSet rs = ps.executeQuery();
                 
-                if ("CLINICIAN".equals(role)) {
-                    response.sendRedirect(request.getContextPath() + "/dashboard/clinician");
+                if (rs.next()) {
+                    HttpSession session = request.getSession();
+                    String role = rs.getString("role");
+                    session.setAttribute("user", rs.getString("email"));
+                    session.setAttribute("username", username);
+                    session.setAttribute("role", role);
+                    
+                    if ("CLINICIAN".equalsIgnoreCase(role)) {
+                        response.sendRedirect(request.getContextPath() + "/dashboard/clinician");
+                    } else {
+                        response.sendRedirect(request.getContextPath() + "/dashboard/engineer");
+                    }
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/dashboard/engineer");
+                    forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid security credentials");
                 }
-            } else {
-                forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid credentials");
             }
-        } catch (SQLException e) {
-            forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Database Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Login failure: " + e.getMessage());
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/index.jsp?error=auth_subsystem_offline");
         }
     }
 
     private void handleRegister(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String username = request.getParameter("username");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String role = request.getParameter("role");
         String systemKey = request.getParameter("systemKey");
 
-        if (isInvalid(email) || isInvalid(password) || isInvalid(systemKey)) {
+        if (isInvalid(username) || isInvalid(email) || isInvalid(password) || isInvalid(systemKey)) {
             forwardWithError(request, response, "/WEB-INF/views/register.jsp", "All fields are required");
             return;
         }
 
-        // 1. Validate System Authorization Key
-        if (authService.validateAndUseSystemKey(systemKey, role)) {
-            // 2. Generate 2FA OTP
-            String otp = authService.generateNumericOTP(6);
-            LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+        try {
+            // 1. Validate System Authorization Key
+            if (authService.validateAndUseSystemKey(systemKey, role)) {
+                // 2. Generate 2FA OTP
+                String otp = authService.generateNumericOTP(6);
+                LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
 
-            String query = "INSERT INTO users (email, password, role, otp, otp_expiry) VALUES (?, ?, ?, ?, ?)";
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(query)) {
-                ps.setString(1, email);
-                ps.setString(2, password);
-                ps.setString(3, role);
-                ps.setString(4, otp);
-                ps.setTimestamp(5, Timestamp.valueOf(expiry));
-                ps.executeUpdate();
+                String query = "INSERT INTO users (username, email, password_hash, role, otp, otp_expiry) VALUES (?, ?, ?, ?, ?, ?)";
+                try (Connection conn = DBConnection.getConnection();
+                     PreparedStatement ps = conn.prepareStatement(query)) {
+                    ps.setString(1, username);
+                    ps.setString(2, email);
+                    ps.setString(3, password);
+                    ps.setString(4, role);
+                    ps.setString(5, otp);
+                    ps.setTimestamp(6, Timestamp.valueOf(expiry));
+                    ps.executeUpdate();
 
-                System.out.println("[2FA EMULATION] OTP for " + email + ": " + otp);
-                
-                // Redirect to OTP Verification View
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("/WEB-INF/views/verify-otp.jsp").forward(request, response);
-            } catch (SQLException e) {
-                forwardWithError(request, response, "/WEB-INF/views/register.jsp", "Account creation failed: " + e.getMessage());
+                    System.out.println("[2FA EMULATION] OTP for " + email + ": " + otp);
+                    
+                    // Redirect to OTP Verification View
+                    request.setAttribute("email", email);
+                    request.getRequestDispatcher("/WEB-INF/views/verify-otp.jsp").forward(request, response);
+                }
+            } else {
+                forwardWithError(request, response, "/WEB-INF/views/register.jsp", "Invalid or used System Authorization Key");
             }
-        } else {
-            forwardWithError(request, response, "/WEB-INF/views/register.jsp", "Invalid or used System Authorization Key");
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/index.jsp?error=db_failure");
         }
     }
 

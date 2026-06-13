@@ -12,7 +12,7 @@
 }
 
 /* Custom Tactical Cursor */
-* {
+body, a, button, select, input, .btn-synapse {
     cursor: none !important;
 }
 
@@ -33,8 +33,9 @@
 .cursor-hover {
     width: 45px !important;
     height: 45px !important;
-    border-color: var(--neon-purple);
-    box-shadow: 0 0 25px var(--neon-purple), inset 0 0 10px var(--neon-purple);
+    border-color: var(--neon-purple) !important;
+    background: transparent !important;
+    box-shadow: 0 0 25px var(--neon-purple), inset 0 0 10px var(--neon-purple) !important;
 }
 
 body {
@@ -107,10 +108,11 @@ h1, h2, h3, .navbar-brand {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     z-index: -1;
     pointer-events: none;
+    background: #000000;
 }
 
 .particle-bg {

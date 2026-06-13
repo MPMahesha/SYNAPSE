@@ -5,9 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/synapse_db";
+    private static final String URL = "jdbc:mysql://localhost:3306/neurosync_bci_db?allowPublicKeyRetrieval=true&useSSL=false";
     private static final String USER = "root";
-    private static final String PASSWORD = "root"; // Updated local credentials
+    private static final String PASSWORD = "root";
 
     static {
         try {

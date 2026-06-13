@@ -61,7 +61,13 @@
     <div class="row">
         <div class="col-md-8">
             <div class="glass-card mb-4" style="height: 450px;">
-                <h5 class="mb-4">Real-Time Neural Streaming Analytics</h5>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Real-Time Neural Streaming Analytics</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="dspToggle" checked>
+                        <label class="form-check-label small text-muted" for="dspToggle">Signal Processing (DSP)</label>
+                    </div>
+                </div>
                 <canvas id="liveChart"></canvas>
             </div>
         </div>
@@ -69,9 +75,6 @@
             <div class="glass-card" style="height: 450px;">
                 <h5>Hardware Health Log</h5>
                 <div class="mt-3 small" id="log-console" style="height: 350px; overflow-y: auto; font-family: monospace;">
-                    <div class="text-success">[08:45:01] System Handshake: SUCCESS</div>
-                    <div class="text-info">[08:45:12] Neural Array 01 Calibration: STABLE</div>
-                    <div class="text-warning">[08:45:30] Packet Loss detected: 0.02%</div>
                 </div>
             </div>
         </div>
@@ -80,87 +83,81 @@
 
 <script>
     const ctx = document.getElementById('liveChart').getContext('2d');
-    let chart;
-
-    async function initChart() {
-        const response = await fetch('${pageContext.request.contextPath}/dashboard/data');
-        const data = await response.json();
-
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.labels.map(l => l.split(' ')[1]), // Show only time
-                datasets: [
-                    {
-                        label: 'SNR (dB)',
-                        data: data.snr,
-                        borderColor: '#00f5d4',
-                        backgroundColor: 'rgba(0, 245, 212, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'ITR (bpm)',
-                        data: data.itr,
-                        borderColor: '#ff0055',
-                        backgroundColor: 'rgba(255, 0, 85, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
+    let chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Neural Signal (uV)',
+                data: [],
+                borderColor: '#00F0FF',
+                backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#888' }
-                    },
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#888' }
-                    }
-                },
-                plugins: {
-                    legend: { labels: { color: '#e0e0e0', font: { family: 'Rajdhani' } } }
-                }
-            }
-        });
-    }
+            plugins: { legend: { display: false } }
+        }
+    });
 
-    // Simulate Live Updates
-    function simulateLiveFeed() {
-        setInterval(() => {
+    const socket = new WebSocket('ws://' + window.location.host + '${pageContext.request.contextPath}/neuralstream');
+    const log = document.getElementById('log-console');
+
+    socket.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
             const time = new Date().toLocaleTimeString();
-            const newSnr = (Math.random() * 2 + 8).toFixed(1);
-            const newItr = (Math.random() * 5 + 25).toFixed(1);
-
+            
             // Update Chart
-            if (chart.data.labels.length > 10) {
+            if (chart.data.labels.length > 50) {
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
-                chart.data.datasets[1].data.shift();
             }
             chart.data.labels.push(time);
-            chart.data.datasets[0].data.push(newSnr);
-            chart.data.datasets[1].data.push(newItr);
+            chart.data.datasets[0].data.push(data.signal_matrix.ch1);
             chart.update('none');
 
-            // Update Cards
-            document.getElementById('avg-snr').innerText = newSnr + ' dB';
-            document.getElementById('avg-itr').innerText = newItr + ' bpm';
+            // Update Analytics Cards
+            document.getElementById('avg-snr').innerText = (data.decoder_analytics.confidence_score * 10).toFixed(1) + ' dB';
+            document.getElementById('avg-itr').innerText = (data.decoder_analytics.inference_latency_ms * 2).toFixed(1) + ' bpm';
 
-            // Log
-            const log = document.getElementById('log-console');
+            // Terminal Intent Logging
+            if (data.telemetry_header.frame_id % 25 === 0) {
+                const entry = document.createElement('div');
+                entry.className = data.telemetry_header.frame_id === -1 ? 'text-warning' : 'text-info';
+                const intent = data.decoder_analytics.predicted_intent;
+                const conf = (data.decoder_analytics.confidence_score * 100).toFixed(2);
+                const lat = data.decoder_analytics.inference_latency_ms;
+                
+                entry.innerText = data.telemetry_header.frame_id === -1 ? 
+                    `[${time}] SYSTEM -> Python Core Offline. Broadcast: FALLBACK MOCK` :
+                    `[${time}] CORE DETECT -> Intent: [${intent}] | Confidence: ${conf}% | ML Latency: ${lat} ms`;
+                
+                log.prepend(entry);
+                if (log.childNodes.length > 100) log.removeChild(log.lastChild);
+            }
+        } catch(e) { console.error("Data Parse Error", e); }
+    };
+
+    document.getElementById('dspToggle').addEventListener('change', (e) => {
+        try {
+            socket.send(JSON.stringify({
+                command: "TOGGLE_DSP",
+                state: e.target.checked
+            }));
             const entry = document.createElement('div');
-            entry.className = Math.random() > 0.8 ? 'text-warning' : 'text-info';
-            entry.innerText = `[${time}] Live Stream Sync: OK (${newSnr} dB)`;
+            entry.className = e.target.checked ? 'text-success' : 'text-danger';
+            entry.innerText = `[${new Date().toLocaleTimeString()}] CONTROL -> DSP Filter: ${e.target.checked ? 'ENABLED' : 'DISABLED (RAW MODE)'}`;
             log.prepend(entry);
-        }, 3000);
-    }
-
-    initChart().then(simulateLiveFeed);
+        } catch(e) { console.error("Command send failed", e); }
+    });
 </script>
 
 </body>

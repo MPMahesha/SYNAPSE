@@ -179,148 +179,169 @@
 </footer>
 
 <script>
-    // Custom Tactical Cursor
-    const cursor = document.getElementById('custom-cursor');
-    document.addEventListener('mousemove', e => {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top = e.clientY + 'px';
-    });
-    document.addEventListener('mousedown', () => cursor.classList.add('cursor-hover'));
-    document.addEventListener('mouseup', () => cursor.classList.remove('cursor-hover'));
-
-    // Inverse Parallax Background
-    const parallaxBg = document.getElementById('parallax-bg');
-    document.addEventListener('mousemove', e => {
-        const moveX = (e.clientX - window.innerWidth / 2) / 50;
-        const moveY = (e.clientY - window.innerHeight / 2) / 50;
-        parallaxBg.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
-    });
-
-    // Three.js 3D Morphing Particle Engine
-    const container = document.getElementById('canvas-container');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
-
-    const particleCount = 6000;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-
-    // Initial State: High-Fidelity 3D Brain Point Cloud
-    const brainPoints = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-        let x, y, z;
-        const u = Math.random();
-        const v = Math.random();
-        const theta = 2 * Math.PI * u;
-        const phi = Math.acos(2 * v - 1);
+    try {
+        // 1. SYSTEM INITIALIZATION & CANVAS INFRASTRUCTURE
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         
-        // Complex Brain geometry logic: Lobed Ellipsoid
-        const r = 3 + (Math.sin(theta * 3) * 0.15) + (Math.cos(phi * 4) * 0.1);
-        x = r * Math.sin(phi) * Math.cos(theta) * 1.3; // Frontal expansion
-        y = r * Math.sin(phi) * Math.sin(theta);
-        z = r * Math.cos(phi) * 0.9;
-
-        brainPoints[i*3] = x;
-        brainPoints[i*3+1] = y;
-        brainPoints[i*3+2] = z;
-        
-        positions[i*3] = x;
-        positions[i*3+1] = y;
-        positions[i*3+2] = z;
-    }
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const material = new THREE.PointsMaterial({ 
-        color: 0xBD00FF, 
-        size: 0.025, 
-        transparent: true, 
-        opacity: 0.8,
-        blending: THREE.AdditiveBlending 
-    });
-    const points = new THREE.Points(geometry, material);
-    scene.add(points);
-
-    camera.position.z = 8;
-
-    // STATE 2: Neuron (Branching Network Structure)
-    const neuronPoints = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-        const angle = (i / particleCount) * Math.PI * 2 * 20;
-        const radius = (i / particleCount) * 4;
-        neuronPoints[i*3] = Math.cos(angle) * radius * (Math.random() + 0.5);
-        neuronPoints[i*3+1] = Math.sin(angle) * radius * (Math.random() + 0.5);
-        neuronPoints[i*3+2] = (Math.random() - 0.5) * 2;
-    }
-
-    // STATE 3: Silicon Chip (Geometric Grid)
-    const chipPoints = new Float32Array(particleCount * 3);
-    const side = Math.floor(Math.sqrt(particleCount));
-    for (let i = 0; i < particleCount; i++) {
-        chipPoints[i*3] = ((i % side) - side/2) * 0.18;
-        chipPoints[i*3+1] = (Math.floor(i / side) - side/2) * 0.18;
-        chipPoints[i*3+2] = (Math.random() - 0.5) * 0.05;
-    }
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Scroll-Driven Morph Timeline
-    const mainTl = gsap.timeline({
-        scrollTrigger: {
-            trigger: "body",
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 2.5
-        }
-    });
-
-    // Morph Brain -> Neuron
-    mainTl.to(positions, {
-        endArray: neuronPoints,
-        duration: 3,
-        onUpdate: () => geometry.attributes.position.needsUpdate = true
-    }, 0);
-
-    // Morph Neuron -> Chip
-    mainTl.to(positions, {
-        endArray: chipPoints,
-        duration: 3,
-        onUpdate: () => geometry.attributes.position.needsUpdate = true
-    }, 3);
-
-    // Dynamic Color Shift (Purple -> Cyan)
-    mainTl.to(material.color, { r: 0, g: 0.94, b: 1, duration: 6 }, 0);
-
-    // Mouse drift listener
-    let targetX = 0, targetY = 0;
-    document.addEventListener('mousemove', e => {
-        targetX = (e.clientX - window.innerWidth / 2) / 250;
-        targetY = (e.clientY - window.innerHeight / 2) / 250;
-    });
-
-    function renderLoop() {
-        requestAnimationFrame(renderLoop);
-        points.rotation.y += 0.001;
-        points.rotation.x = gsap.utils.interpolate(points.rotation.x, targetY, 0.05);
-        points.rotation.y = gsap.utils.interpolate(points.rotation.y, targetX, 0.05);
-        renderer.render(scene, camera);
-    }
-    renderLoop();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-</script>
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x000000, 1.0); 
+        if(container) container.appendChild(renderer.domElement);
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-erHeight);
-    });
+        scene.add(new THREE.AmbientLight(0x110522, 2.0));
+        const dLight = new THREE.DirectionalLight(0x00F0FF, 3.5);
+        dLight.position.set(10, 15, 8);
+        scene.add(dLight);
+
+        // --- FULL-SCREEN GRAIN SHADER ---
+        const noiseShaderMat = new THREE.ShaderMaterial({
+            uniforms: { 
+                time: { value: 1.0 }, 
+                resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) } 
+            },
+            vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+            fragmentShader: `
+                uniform float time;
+                uniform vec2 resolution;
+                varying vec2 vUv;
+                float noise(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+                void main() {
+                    float n = noise(vUv * (resolution.xy / 100.0) + time * 0.05);
+                    gl_FragColor = vec4(vec3(n * 0.04), 1.0);
+                }
+            `,
+            transparent: true,
+            depthTest: false
+        });
+        const noiseQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), noiseShaderMat);
+        const noiseScene = new THREE.Scene();
+        const noiseCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        noiseScene.add(noiseQuad);
+
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xBD00FF,
+            roughness: 0.22,
+            metalness: 0.3,
+            transparent: true,
+            opacity: 1
+        });
+
+        const v = new THREE.Vector3();
+
+        // --- MODEL A: ANATOMICAL HUMAN BRAIN ---
+        const geoA = new THREE.SphereGeometry(3.5, 128, 128);
+        const posA = geoA.attributes.position;
+        for(let i = 0; i < posA.count; i++) {
+            v.fromBufferAttribute(posA, i);
+            const theta = Math.atan2(v.y, v.x);
+            const phi = Math.acos(v.z / v.length());
+            const g1 = 0.65 * Math.sin(14 * phi) * Math.cos(14 * theta);
+            const g2 = 0.25 * Math.sin(32 * phi) * Math.sin(32 * theta);
+            const r = 3.5 + g1 + g2;
+            v.normalize().multiplyScalar(r);
+            if(v.x > 0) v.x += 0.15; else v.x -= 0.15;
+            posA.setXYZ(i, v.x * 1.5, v.y * 1.1, v.z * 1.3);
+        }
+        geoA.computeVertexNormals();
+        const meshA = new THREE.Mesh(geoA, material.clone());
+        scene.add(meshA);
+
+        // --- MODEL B: BIOLOGICAL NEURON STRUCTURE ---
+        const groupB = new THREE.Group();
+        const soma = new THREE.Mesh(new THREE.SphereGeometry(1.2, 64, 64), material.clone());
+        const sPos = soma.geometry.attributes.position;
+        for(let i = 0; i < sPos.count; i++) {
+            v.fromBufferAttribute(sPos, i);
+            const n = 1 + (Math.sin(v.x * 8) + Math.cos(v.y * 8)) * 0.15;
+            v.multiplyScalar(n);
+            sPos.setXYZ(i, v.x, v.y, v.z);
+        }
+        soma.geometry.computeVertexNormals();
+        groupB.add(soma);
+        for(let i = 0; i < 12; i++) {
+            const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.3, 10, 12), material.clone());
+            branch.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            branch.translateY(5);
+            groupB.add(branch);
+        }
+        const axon = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 20, 12), material.clone());
+        axon.position.set(0, -10, 0);
+        groupB.add(axon);
+        groupB.scale.set(2.5, 2.5, 2.5);
+        groupB.visible = false;
+        scene.add(groupB);
+
+        // --- MODEL C: HUMAN SKULL & CYBERNETIC CABLES ---
+        const groupC = new THREE.Group();
+        const skullGeo = new THREE.SphereGeometry(3, 128, 128);
+        const skPos = skullGeo.attributes.position;
+        for(let i = 0; i < skPos.count; i++) {
+            v.fromBufferAttribute(skPos, i);
+            const headMod = 1.0 + (v.y > 0 ? 0.35 : -0.25) + (Math.abs(v.x) < 0.6 ? 0.2 : 0);
+            skPos.setXYZ(i, v.x * headMod * 1.25, v.y * headMod * 1.6, v.z * headMod * 1.15);
+        }
+        skullGeo.computeVertexNormals();
+        const skull = new THREE.Mesh(skullGeo, material.clone());
+        groupC.add(skull);
+        const cableMat = new THREE.MeshStandardMaterial({ color: 0x00F0FF, emissive: 0x00F0FF, emissiveIntensity: 2.5 });
+        for(let i = 0; i < 12; i++) {
+            const pts = [];
+            for(let j = 0; j < 12; j++) pts.push(new THREE.Vector3(Math.sin(i + j) * 3, Math.cos(i + j) * 3, -j * 4));
+            const cable = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, 0.1, 10, false), cableMat);
+            cable.position.set(0, -1, -3);
+            groupC.add(cable);
+        }
+        groupC.visible = false;
+        scene.add(groupC);
+
+        camera.position.z = 25;
+
+        // 2. PARALLAX DRIFT & MOUSE TRACKING
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', e => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            const reticle = document.getElementById('custom-cursor');
+            if(reticle) { reticle.style.left = e.clientX + 'px'; reticle.style.top = e.clientY + 'px'; }
+        });
+
+        // 3. GSAP SCROLL BLENDING
+        gsap.registerPlugin(ScrollTrigger);
+        const mainTl = gsap.timeline({
+            scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.5 }
+        });
+        mainTl.to(meshA.material, { opacity: 0, duration: 1, onUpdate: () => { meshA.visible = meshA.material.opacity > 0; } }, 0);
+        mainTl.to(groupB, { visible: true, duration: 0.1 }, 0.5);
+        groupB.children.forEach(m => mainTl.fromTo(m.material, { opacity: 0 }, { opacity: 1, duration: 1 }, 0.5));
+        groupB.children.forEach(m => mainTl.to(m.material, { opacity: 0, duration: 1, onUpdate: () => { groupB.visible = m.material.opacity > 0; } }, 2));
+        mainTl.to(groupC, { visible: true, duration: 0.1 }, 2.5);
+        groupC.children.forEach(m => { if(m.material.color.getHex() === 0xBD00FF) mainTl.fromTo(m.material, { opacity: 0 }, { opacity: 1, duration: 1 }, 2.5); });
+
+        // 4. ANIMATION LOOP
+        function animate(time) {
+            requestAnimationFrame(animate);
+            noiseShaderMat.uniforms.time.value = time * 0.001;
+            scene.position.x += (mouseX * 4.5 - scene.position.x) * 0.05;
+            scene.position.y += (mouseY * 4.5 - scene.position.y) * 0.05;
+            scene.rotation.y += (mouseX * 0.2 - scene.rotation.y) * 0.05;
+            renderer.autoClear = false;
+            renderer.clear();
+            renderer.render(noiseScene, noiseCam);
+            renderer.render(scene, camera);
+        }
+        animate(0);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            noiseShaderMat.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+        });
+
+    } catch(err) { console.error("Anatomical Engine Subsystem Failure:", err); }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

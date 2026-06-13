@@ -36,6 +36,10 @@
                                    placeholder="NS-CLINIC-XXXX-XXX">
                         </div>
                         <div class="col-md-12 mb-3">
+                            <label class="form-label text-cyan-vis">Create Neural-ID (Username)</label>
+                            <input type="text" name="username" class="form-control" required placeholder="Choose a unique username">
+                        </div>
+                        <div class="col-md-12 mb-3">
                             <label class="form-label text-cyan-vis">Professional Email</label>
                             <input type="email" name="email" class="form-control" required placeholder="user@synapse.com">
                         </div>
