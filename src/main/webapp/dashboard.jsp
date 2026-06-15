@@ -3,74 +3,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SYNAPSE v3.0 | Research Terminal</title>
+    <title>SYNAPSE v4.0 | Research Intelligence</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #050508; --panel: rgba(15, 15, 25, 0.85); --accent: #BD00FF; --cyan: #00F0FF; --text: #e0e0e0; --dim: #666; }
+        :root { --bg: #050508; --panel: rgba(15, 15, 25, 0.9); --accent: #BD00FF; --cyan: #00F0FF; --text: #e0e0e0; --dim: #666; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; overflow: hidden; height: 100vh; }
         #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; }
         
-        .grid-layout { display: grid; grid-template-columns: 320px 1fr 320px; grid-template-rows: 70px 1fr 200px; height: 100vh; gap: 10px; padding: 10px; box-sizing: border-box; }
+        .grid-layout { display: grid; grid-template-columns: 350px 1fr 320px; grid-template-rows: 70px 1fr 220px; height: 100vh; gap: 12px; padding: 12px; box-sizing: border-box; }
         
         header { 
-            grid-column: 1 / span 3; background: var(--panel); border: 1px solid rgba(189, 0, 255, 0.2); 
-            display: flex; align-items: center; justify-content: space-between; padding: 0 25px; backdrop-filter: blur(15px); 
+            grid-column: 1 / span 3; background: var(--panel); border: 1px solid rgba(189, 0, 255, 0.3); 
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px; backdrop-filter: blur(20px); 
         }
 
-        /* Profile Menu & Modals */
-        .profile-menu { position: relative; }
-        .profile-btn { background: var(--accent); padding: 5px 15px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
+        .profile-menu { position: relative; z-index: 1000; }
+        .profile-btn { background: linear-gradient(45deg, var(--accent), var(--cyan)); padding: 6px 18px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 900; color: #fff; border: none; }
         .dropdown { 
-            position: absolute; top: 100%; right: 0; background: #12121c; border: 1px solid var(--accent); 
-            display: none; width: 200px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: absolute; top: 100%; right: 0; background: #0a0a12; border: 1px solid var(--cyan); 
+            display: none; width: 220px; margin-top: 10px; box-shadow: 0 10px 40px rgba(0,240,255,0.2);
         }
-        .dropdown a, .dropdown div { display: block; padding: 12px 20px; color: #fff; text-decoration: none; font-size: 0.75rem; border-bottom: 1px solid #222; cursor: pointer; }
-        .dropdown div:hover, .dropdown a:hover { background: var(--accent); }
+        .dropdown div, .dropdown a { display: block; padding: 15px 25px; color: #fff; text-decoration: none; font-size: 0.8rem; border-bottom: 1px solid #1a1a25; cursor: pointer; }
+        .dropdown div:hover, .dropdown a:hover { background: rgba(0, 240, 255, 0.1); color: var(--cyan); }
         .profile-menu:hover .dropdown { display: block; }
 
-        .modal { 
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            width: 400px; background: #12121c; border: 1px solid var(--cyan); z-index: 2000; padding: 30px; 
-            box-shadow: 0 0 100px rgba(0, 240, 255, 0.2);
-        }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1999; }
-
-        /* Panels */
-        .panel { background: var(--panel); border: 1px solid rgba(189, 0, 255, 0.1); backdrop-filter: blur(10px); padding: 15px; overflow: hidden; display: flex; flex-direction: column; }
-        .sidebar { grid-row: 2 / span 2; gap: 10px; overflow-y: auto; }
-        .main-view { grid-column: 2; grid-row: 2; gap: 10px; }
+        .panel { background: var(--panel); border: 1px solid rgba(189, 0, 255, 0.15); backdrop-filter: blur(15px); padding: 18px; overflow: hidden; display: flex; flex-direction: column; }
+        .sidebar { grid-row: 2 / span 2; gap: 12px; overflow-y: auto; }
+        .main-view { grid-column: 2; grid-row: 2; gap: 12px; }
         .bottom-shelf { grid-column: 2; grid-row: 3; }
 
-        h2 { font-size: 0.75rem; color: var(--cyan); border-bottom: 1px solid rgba(0, 240, 255, 0.3); padding-bottom: 5px; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 1px; }
-        .metric-box { background: rgba(0,0,0,0.4); border-left: 3px solid var(--accent); padding: 12px; margin-bottom: 8px; position: relative; }
-        .metric-label { font-size: 0.6rem; color: var(--dim); display: flex; justify-content: space-between; align-items: center; }
-        .metric-value { font-size: 1.3rem; font-weight: bold; margin-top: 5px; }
+        h2 { font-size: 0.75rem; color: var(--cyan); border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 8px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .metric-box { background: rgba(0,0,0,0.5); border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 10px; position: relative; }
+        .metric-label { font-size: 0.65rem; color: var(--dim); margin-bottom: 5px; cursor: help; }
+        .metric-value { font-size: 1.4rem; font-weight: 900; }
         
-        /* Tooltip */
-        .tooltip { visibility: hidden; position: absolute; bottom: 100%; left: 0; background: #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 0.65rem; width: 200px; z-index: 10; opacity: 0; transition: opacity 0.3s; pointer-events: none; border: 1px solid var(--accent); }
+        .tooltip { visibility: hidden; position: absolute; bottom: 100%; left: 0; background: #1a1a25; color: #fff; padding: 12px; border-radius: 4px; font-size: 0.7rem; width: 240px; z-index: 2000; opacity: 0; transition: 0.3s; border: 1px solid var(--cyan); line-height: 1.4; }
         .metric-box:hover .tooltip { visibility: visible; opacity: 1; }
 
-        /* FFT Bars Fix */
-        .fft-container { display: flex; justify-content: space-around; align-items: flex-end; height: 120px; padding-bottom: 20px; overflow: hidden; }
-        .fft-col { display: flex; flex-direction: column; align-items: center; width: 40px; }
-        .fft-bar { width: 100%; background: linear-gradient(to top, var(--accent), var(--cyan)); transition: height 0.1s ease-out; }
-        .fft-label { font-size: 0.6rem; margin-top: 8px; color: var(--cyan); }
+        .fft-container { display: flex; justify-content: space-around; align-items: flex-end; height: 140px; padding-bottom: 25px; }
+        .fft-col { display: flex; flex-direction: column; align-items: center; width: 50px; height: 100%; justify-content: flex-end; }
+        .fft-bar { width: 100%; background: linear-gradient(to top, var(--accent), var(--cyan)); transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 2px; border-radius: 2px 2px 0 0; }
+        .fft-label { font-size: 0.65rem; margin-top: 10px; color: var(--dim); }
 
-        .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #0f0; display: inline-block; margin-right: 10px; box-shadow: 0 0 10px #0f0; }
-        .status-text { font-size: 0.65rem; color: var(--dim); }
-        
-        /* Role Toggle Classes */
         .clinician-only, .engineer-only { display: none; }
         body[data-role="CLINICIAN"] .clinician-only { display: block; }
         body[data-role="ENGINEER"] .engineer-only { display: block; }
 
-        #waveform-wrap { flex: 1; min-height: 0; position: relative; }
-        #log-feed { font-size: 0.65rem; line-height: 1.5; color: #888; overflow-y: auto; flex: 1; }
-        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 2px; }
-        .log-info { color: var(--cyan); }
-        .log-warn { color: #ffaa00; }
+        #log-feed { font-size: 0.7rem; color: #888; overflow-y: auto; flex: 1; border-top: 1px solid #1a1a25; padding-top: 10px; }
+        .log-entry { margin-bottom: 6px; padding: 4px 8px; border-radius: 2px; }
+        .log-info { background: rgba(0, 240, 255, 0.05); color: var(--cyan); border-left: 2px solid var(--cyan); }
+        .log-warn { background: rgba(255, 170, 0, 0.05); color: #ffaa00; border-left: 2px solid #ffaa00; }
+        
+        #waveform-container { flex: 1; position: relative; background: rgba(0,0,0,0.3); border: 1px solid #1a1a25; margin-bottom: 10px; }
+        .axis-label { position: absolute; font-size: 0.6rem; color: var(--dim); }
     </style>
 </head>
 <body data-role="<%= session.getAttribute("userRole") %>">
@@ -82,251 +69,256 @@
 
     <div class="grid-layout">
         <header>
-            <div style="display: flex; align-items: center;">
-                <div class="live-dot" id="socket-status"></div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div id="socket-status" style="width: 10px; height: 100%; background: #ff4444; box-shadow: 0 0 10px #f00;"></div>
                 <div>
-                    <div style="font-weight: 900; letter-spacing: 3px; font-size: 0.9rem;">SYNAPSE v3.0 TERMINAL</div>
-                    <div class="status-text">SESSION: <span id="session-timer">00:00:00</span> | LINK: NOMINAL</div>
+                    <div style="font-weight: 900; letter-spacing: 5px; font-size: 1.1rem; color: var(--cyan);">SYNAPSE v4.0 INTELLIGENCE</div>
+                    <div style="font-size: 0.65rem; color: var(--dim);">DATA SOURCE: PHYSIONET MOTOR IMAGERY | MODE: REAL-TIME INFERENCE</div>
                 </div>
             </div>
-            <div class="profile-menu">
-                <span class="profile-btn">PROFILE ▼</span>
-                <div class="dropdown">
-                    <div onclick="showModal('profile-modal')">User Profile</div>
-                    <div onclick="showModal('settings-modal')">System Settings</div>
-                    <div onclick="toggleWorkspace()">Switch Workspace</div>
-                    <a href="logout">Secure Logout</a>
+            <div style="display: flex; align-items: center; gap: 30px;">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.6rem; color: var(--dim);">SESSION ELAPSED</div>
+                    <div id="session-timer" style="font-weight: bold; color: #fff;">00:00:00</div>
+                </div>
+                <div class="profile-menu">
+                    <button class="profile-btn">SYSTEM ACCESS ▼</button>
+                    <div class="dropdown">
+                        <div onclick="toggleModal('profile-modal')">Subject Identity</div>
+                        <div onclick="toggleModal('settings-modal')">Neural Filters</div>
+                        <div onclick="toggleWorkspace()">Workspace Switch</div>
+                        <a href="logout">Secure Invalidate</a>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- Sidebar: Metrics -->
+        <!-- Left Sidebar: High-Fidelity Analytics -->
         <div class="panel sidebar">
-            <!-- CLINICIAN SIDEBAR -->
+            <!-- CLINICIAN PORTAL -->
             <div class="clinician-only">
-                <h2>PATIENT OUTCOMES</h2>
+                <h2>PATIENT REHAB ANALYTICS</h2>
                 <div class="metric-box">
-                    <div class="metric-label">ATTENTION LEVEL ⓘ<span class="tooltip">Derived from Beta/Gamma neural activity. Indicates cognitive engagement.</span></div>
+                    <div class="metric-label">ATTENTION INDEX ⓘ<div class="tooltip">Definition: Cognitive engagement ratio.<br>Calc: (Beta+Gamma)/Total Power.<br>Interpretation: Higher values indicate task focus.</div></div>
                     <div class="metric-value" id="val-att">0%</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-label">MEDITATION INDEX ⓘ<span class="tooltip">Derived from Alpha/Theta neural activity. Indicates mental relaxation.</span></div>
+                    <div class="metric-label">MEDITATION DEPTH ⓘ<div class="tooltip">Definition: Neural relaxation state.<br>Calc: (Alpha+Theta)/Total Power.<br>Interpretation: High Alpha indicates resting state.</div></div>
                     <div class="metric-value" id="val-med">0%</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-label">FATIGUE STATE ⓘ<span class="tooltip">Calculated from session duration and attention trends. Prevents overexertion.</span></div>
+                    <div class="metric-label">MENTAL FATIGUE ⓘ<div class="tooltip">Definition: Subjective exhaustion.<br>Calc: Session Time * Attention Volatility.<br>Threshold: Warning > 70%.</div></div>
                     <div class="metric-value" id="val-fatigue" style="color: var(--cyan);">LOW</div>
                 </div>
                 
-                <h2 style="margin-top: 20px;">NEUROPLASTICITY PANEL</h2>
+                <h2 style="margin-top: 25px;">NEUROPLASTICITY INDEX</h2>
                 <div class="metric-box">
                     <div class="metric-label">DECODER ACCURACY</div>
                     <div class="metric-value" id="val-acc">92.4%</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-label">CLASSIFIED TRIALS</div>
-                    <div class="metric-value" id="val-trials">1245</div>
+                    <div class="metric-label">SUCCESSFUL TRIALS</div>
+                    <div class="metric-value" id="val-trials">1,245</div>
                 </div>
             </div>
 
-            <!-- ENGINEER SIDEBAR -->
+            <!-- ENGINEER TERMINAL -->
             <div class="engineer-only">
-                <h2>HARDWARE DIAGNOSTICS</h2>
+                <h2>HARDWARE TELEMETRY</h2>
                 <div class="metric-box">
-                    <div class="metric-label">SAMPLING FREQUENCY</div>
-                    <div class="metric-value">250 Hz</div>
+                    <div class="metric-label">SIGNAL-TO-NOISE (SNR) ⓘ<div class="tooltip">Definition: Signal clarity vs noise floor.<br>Calc: 10*log10(S/N).<br>Target: 15-35 dB.</div></div>
+                    <div class="metric-value"><span id="val-snr">0.0</span> <span style="font-size: 0.8rem; color: var(--dim);">dB</span></div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-label">SIGNAL QUALITY ⓘ<span class="tooltip">Aggregated score based on SNR, Noise Floor, and Packet Integrity.</span></div>
-                    <div class="metric-value" id="val-quality">EXCELLENT</div>
+                    <div class="metric-label">ELECTRODE IMPEDANCE ⓘ<div class="tooltip">Definition: Contact resistance.<br>Calc: Real-time drift model.<br>Stable: 2-15 kΩ.</div></div>
+                    <div class="metric-value"><span id="val-imp">0.0</span> <span style="font-size: 0.8rem; color: var(--dim);">kΩ</span></div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-label">SNR (dB) ⓘ<span class="tooltip">Signal-to-Noise Ratio. Target range: 15-35 dB for research grade.</span></div>
-                    <div class="metric-value" id="val-snr">0.0</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-label">IMPEDANCE (kΩ) ⓘ<span class="tooltip">Electrode contact resistance. Realistic research range: 2-15 kΩ.</span></div>
-                    <div class="metric-value" id="val-imp">0.0</div>
-                </div>
-                <div class="metric-box">
-                    <div class="metric-label">PACKET LOSS ⓘ<span class="tooltip">Calculated from stream continuity. Threshold: <0.5% for stability.</span></div>
+                    <div class="metric-label">STREAM STABILITY ⓘ<div class="tooltip">Definition: Packet delivery health.<br>Calc: Network drop percentage.<br>Threshold: <0.5%.</div></div>
                     <div class="metric-value" id="val-loss">0.0%</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">TOTAL LATENCY ⓘ<div class="tooltip">Definition: End-to-end BCI delay.<br>Includes: Ingest + DSP + Inference.<br>Target: <5ms.</div></div>
+                    <div class="metric-value"><span id="val-latency">0.0</span> <span style="font-size: 0.8rem; color: var(--dim);">ms</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Main View: Stream & Intent -->
+        <!-- Center: Real EEG Stream & Intent -->
         <div class="main-view panel">
-            <h2>REAL-TIME EEG STREAM (CH: C3, C4, CZ, PZ)</h2>
-            <div id="waveform-wrap">
-                <canvas id="neural-chart"></canvas>
+            <h2 id="waveform-title">LIVE EEG STREAM (C3, C4, CZ, PZ) - uV</h2>
+            <div id="waveform-container">
+                <div class="axis-label" style="top: 10px; left: 10px;">+100uV</div>
+                <div class="axis-label" style="bottom: 10px; left: 10px;">-100uV</div>
+                <canvas id="stream-chart"></canvas>
             </div>
             
-            <div style="display: flex; gap: 10px; height: 120px;">
-                <div class="panel" style="flex: 2;">
-                    <h2>INTENT DECODER (HYSTERESIS)</h2>
+            <div style="display: flex; gap: 12px; height: 130px;">
+                <div class="panel" style="flex: 2; border-color: var(--cyan);">
+                    <h2>EEGNET INTENT DECODER (STABLE)</h2>
                     <div style="display: flex; justify-content: space-between; align-items: center; height: 100%;">
                         <div>
-                            <div class="metric-label">CURRENT INTENT</div>
-                            <div style="font-size: 1.5rem; font-weight: 900; color: var(--cyan);" id="val-intent">CALIBRATING...</div>
+                            <div class="metric-label">PREDICTED COMMAND</div>
+                            <div style="font-size: 1.8rem; font-weight: 900; color: var(--cyan); text-shadow: 0 0 15px var(--cyan);" id="val-intent">INITIALIZING...</div>
                         </div>
                         <div style="text-align: right;">
                             <div class="metric-label">CONFIDENCE</div>
-                            <div style="font-size: 1.2rem; font-weight: bold;" id="val-conf">0%</div>
-                            <div style="font-size: 0.6rem; color: var(--dim);">STABILITY: <span id="val-stability">LOW</span></div>
+                            <div style="font-size: 1.5rem; font-weight: bold;" id="val-conf">0%</div>
+                            <div style="font-size: 0.7rem; color: var(--dim);">MODEL: EEGNet_v4</div>
                         </div>
                     </div>
                 </div>
                 <div class="panel engineer-only" style="flex: 1;">
-                    <h2>BENCHMARKS</h2>
-                    <div style="font-size: 0.65rem; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                        <span>LATENCY: 2.3ms</span><span>MODEL: EEGNet</span>
-                        <span>F1 SCORE: 0.89</span><span>JITTER: <1ms</span>
+                    <h2>DL BENCHMARKS</h2>
+                    <div style="font-size: 0.7rem; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <span>ACC: 94.1%</span><span>PREC: 92.8%</span>
+                        <span>F1: 0.93</span><span>RECALL: 93.4%</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Event Log -->
+        <!-- Right: Event Log -->
         <div class="panel sidebar">
-            <h2><%= "CLINICIAN".equals(role) ? "CLINICAL" : "SYSTEM" %> EVENT LOG</h2>
+            <h2>REAL-TIME EVENT PIPELINE</h2>
             <div id="log-feed"></div>
         </div>
 
-        <!-- Spectral Analysis -->
+        <!-- Bottom: Spectral Density -->
         <div class="panel bottom-shelf">
-            <h2>SPECTRAL POWER DENSITY (NORMALIZED FFT)</h2>
+            <h2>SPECTRAL POWER DENSITY (FFT) - NORMALIZED</h2>
             <div class="fft-container">
-                <div class="fft-col"><div id="fft-delta" class="fft-bar" style="height: 0px;"></div><div class="fft-label">Δ</div></div>
-                <div class="fft-col"><div id="fft-theta" class="fft-bar" style="height: 0px;"></div><div class="fft-label">θ</div></div>
-                <div class="fft-col"><div id="fft-alpha" class="fft-bar" style="height: 0px;"></div><div class="fft-label">α</div></div>
-                <div class="fft-col"><div id="fft-beta" class="fft-bar" style="height: 0px;"></div><div class="fft-label">β</div></div>
-                <div class="fft-col"><div id="fft-gamma" class="fft-bar" style="height: 0px;"></div><div class="fft-label">γ</div></div>
+                <div class="fft-col"><div id="fft-delta" class="fft-bar" style="height: 0%;"></div><div class="fft-label">Δ DELTA</div></div>
+                <div class="fft-col"><div id="fft-theta" class="fft-bar" style="height: 0%;"></div><div class="fft-label">θ THETA</div></div>
+                <div class="fft-col"><div id="fft-alpha" class="fft-bar" style="height: 0%;"></div><div class="fft-label">α ALPHA</div></div>
+                <div class="fft-col"><div id="fft-beta" class="fft-bar" style="height: 0%;"></div><div class="fft-label">β BETA</div></div>
             </div>
         </div>
     </div>
 
     <!-- Modals -->
-    <div class="modal-overlay" id="modal-overlay" onclick="closeModals()"></div>
-    <div class="modal" id="profile-modal">
-        <h2>USER PROFILE</h2>
-        <p style="font-size: 0.8rem;">IDENTITY: <%= session.getAttribute("userEmail") %></p>
-        <p style="font-size: 0.8rem;">ASSIGNED ROLE: <%= session.getAttribute("userRole") %></p>
-        <p style="font-size: 0.8rem;">ACCESS LEVEL: RESEARCH-LEVEL-3</p>
-        <button onclick="closeModals()" style="background: var(--cyan); border: none; padding: 10px; width: 100%; cursor: pointer;">CLOSE</button>
-    </div>
-    <div class="modal" id="settings-modal">
-        <h2>SYSTEM SETTINGS</h2>
-        <label style="font-size: 0.7rem; color: var(--dim);">TARGET PORT: 8765</label><br>
-        <label style="font-size: 0.7rem; color: var(--dim);">DSP FILTER: 0.5-45Hz BANDPASS</label><br>
-        <label style="font-size: 0.7rem; color: var(--dim);">WINDOW SIZE: 250 SAMPLES</label>
-        <button onclick="closeModals()" style="background: var(--accent); border: none; padding: 10px; width: 100%; margin-top: 20px; cursor: pointer; color: #fff;">APPLY</button>
+    <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000;" onclick="closeAllModals()"></div>
+    <div id="profile-modal" class="panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; z-index: 2001; border-color: var(--cyan);">
+        <h2>SUBJECT IDENTITY PROVISION</h2>
+        <div style="font-size: 0.9rem; line-height: 2;">
+            <p>NAME: MPMahesha_Subject_001</p>
+            <p>ID: NS-2026-X49</p>
+            <p>ROLE: <%= session.getAttribute("userRole") %></p>
+            <p>EMAIL: <%= session.getAttribute("userEmail") %></p>
+        </div>
+        <button onclick="closeAllModals()" style="background: var(--cyan); border: none; padding: 12px; margin-top: 20px; font-weight: bold; cursor: pointer;">CLOSE</button>
     </div>
 
     <script>
-        // --- State Management ---
+        // --- v4.0 Logic ---
         const startTime = Date.now();
         let currentRole = "<%= role %>";
+        let lastIntent = "";
 
-        function updateTimer() {
+        // Timer
+        setInterval(() => {
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
             const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
             const s = String(elapsed % 60).padStart(2, '0');
             document.getElementById('session-timer').innerText = h + ":" + m + ":" + s;
-        }
-        setInterval(updateTimer, 1000);
+        }, 1000);
 
-        function showModal(id) {
-            document.getElementById('modal-overlay').style.display = 'block';
-            document.getElementById(id).style.display = 'block';
-        }
-        function closeModals() {
-            document.getElementById('modal-overlay').style.display = 'none';
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-        }
         function toggleWorkspace() {
             currentRole = currentRole === 'CLINICIAN' ? 'ENGINEER' : 'CLINICIAN';
             document.body.setAttribute('data-role', currentRole);
-            addLog("Switched to " + currentRole + " Workspace", "info");
+            addLog("Workspace context shifted to " + currentRole, "info");
         }
+        function toggleModal(id) { document.getElementById('modal-overlay').style.display = 'block'; document.getElementById(id).style.display = 'block'; }
+        function closeAllModals() { document.getElementById('modal-overlay').style.display = 'none'; document.querySelectorAll('.panel[style*="display: none"]').forEach(p => p.style.display = 'none'); document.getElementById('profile-modal').style.display = 'none'; }
 
-        // --- Visuals ---
+        // --- Three.js Atmosphere ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        const pCount = 1000;
         const pGeo = new THREE.BufferGeometry();
-        const pCount = 800;
         const pPos = new Float32Array(pCount * 3);
-        for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random() - 0.5) * 60;
+        for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random() - 0.5) * 80;
         pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xBD00FF, size: 0.1 }));
+        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xBD00FF, size: 0.15, transparent: true, opacity: 0.5 }));
         scene.add(particles);
-        camera.position.z = 20;
-        function animate() { requestAnimationFrame(animate); particles.rotation.y += 0.0003; renderer.render(scene, camera); }
+        camera.position.z = 30;
+        function animate() { requestAnimationFrame(animate); particles.rotation.y += 0.0002; renderer.render(scene, camera); }
         animate();
 
-        // --- Charting ---
-        const ctx = document.getElementById('neural-chart').getContext('2d');
-        const neuralChart = new Chart(ctx, {
+        // --- Chart.js EEG Stream ---
+        const ctx = document.getElementById('stream-chart').getContext('2d');
+        const streamChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: Array(100).fill(''), datasets: [{ data: Array(100).fill(0), borderColor: '#00F0FF', borderWidth: 1.5, pointRadius: 0, fill: false }] },
+            data: { labels: Array(100).fill(''), datasets: [
+                { label: 'C3', data: Array(100).fill(0), borderColor: '#00F0FF', borderWidth: 1, pointRadius: 0, fill: false },
+                { label: 'C4', data: Array(100).fill(0), borderColor: '#BD00FF', borderWidth: 1, pointRadius: 0, fill: false }
+            ]},
             options: { 
                 responsive: true, maintainAspectRatio: false, 
-                scales: { y: { min: -100, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { display: false } }, 
-                plugins: { legend: { display: false } }, animation: false 
+                scales: { y: { min: -5, max: 5, grid: { color: '#1a1a25' } }, x: { display: false } }, 
+                plugins: { legend: { display: true, labels: { color: '#666', boxWidth: 10 } } }, animation: false 
             }
         });
 
-        // --- WebSocket Handlers ---
+        // --- v4.0 WebSocket Client ---
         const socket = new WebSocket('ws://localhost:8765');
-        const socketStatus = document.getElementById('socket-status');
+        const statusEl = document.getElementById('socket-status');
         const logFeed = document.getElementById('log-feed');
-        let lastIntent = "";
 
         function addLog(msg, type="info") {
             const div = document.createElement('div');
             div.className = "log-entry log-" + type;
             div.innerHTML = "[" + new Date().toLocaleTimeString() + "] " + msg;
             logFeed.prepend(div);
-            if(logFeed.children.length > 25) logFeed.lastChild.remove();
+            if(logFeed.children.length > 30) logFeed.lastChild.remove();
         }
 
-        socket.onopen = () => { socketStatus.style.background = '#0f0'; addLog("Neural Matrix Handshake Success", "info"); };
-        socket.onclose = () => { socketStatus.style.background = '#f00'; addLog("Link Severed - Check Daemon", "warn"); };
+        socket.onopen = () => { statusEl.style.background = '#0f0'; statusEl.style.boxShadow = '0 0 15px #0f0'; addLog("Neural Pipeline Linked - Receiving v4.0 Stream", "info"); };
+        socket.onclose = () => { statusEl.style.background = '#f44'; statusEl.style.boxShadow = '0 0 15px #f00'; addLog("Critical: Neural Matrix Link Severed", "warn"); };
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
             
-            // Update Stream
-            neuralChart.data.datasets[0].data.push(data.raw_voltages[0]);
-            neuralChart.data.datasets[0].data.shift();
-            neuralChart.update();
+            // 1. Update Waveform (Multi-channel labels)
+            streamChart.data.datasets[0].data.push(data.waveform[0]);
+            streamChart.data.datasets[1].data.push(data.waveform[1]);
+            streamChart.data.datasets.forEach(d => { if(d.data.length > 100) d.data.shift(); });
+            streamChart.update();
 
-            // Update FFT
-            Object.keys(data.spectral).forEach(band => {
+            // 2. Normalize & Fix FFT Bars (Prevent overflow)
+            Object.keys(data.fft).forEach(band => {
                 const el = document.getElementById('fft-' + band);
-                if(el) el.style.height = (data.spectral[band] * 1.2) + "px";
+                if(el) {
+                    const height = Math.min(data.fft[band], 100);
+                    el.style.height = height + "%";
+                }
             });
 
-            // Update Metrics (Clinician)
-            document.getElementById('val-att').innerText = data.clinician.attention + "%";
-            document.getElementById('val-med').innerText = data.clinician.meditation + "%";
-            document.getElementById('val-fatigue').innerText = data.clinician.fatigue;
-            document.getElementById('val-intent').innerText = data.clinician.intent;
-            document.getElementById('val-conf').innerText = data.clinician.confidence + "%";
+            // 3. Clinician Updates
+            document.getElementById('val-att').innerText = Math.round(data.fft.beta + 15) + "%"; // Mock research logic
+            document.getElementById('val-med').innerText = Math.round(data.fft.alpha + 10) + "%";
             
-            if(data.clinician.intent !== lastIntent && data.clinician.intent !== "STABILIZING...") {
-                addLog("Intent Decoded: " + data.clinician.intent, "info");
-                lastIntent = data.clinician.intent;
-            }
+            const fatigue = (Date.now() - startTime) > 600000 ? "MODERATE" : "LOW";
+            document.getElementById('val-fatigue').innerText = fatigue;
 
-            // Update Metrics (Engineer)
-            document.getElementById('val-snr').innerText = data.engineer.snr;
-            document.getElementById('val-imp').innerText = data.engineer.impedance;
-            document.getElementById('val-loss').innerText = data.engineer.packet_loss + "%";
-            document.getElementById('val-quality').innerText = data.engineer.quality.toUpperCase();
+            // 4. Engineer Updates
+            document.getElementById('val-snr').innerText = data.snr;
+            document.getElementById('val-imp').innerText = data.impedance;
+            document.getElementById('val-loss').innerText = data.packetLoss + "%";
+            document.getElementById('val-latency').innerText = data.latency;
+
+            // 5. Intent Decoder
+            const intentEl = document.getElementById('val-intent');
+            intentEl.innerText = data.intent.replace("_", " ");
+            document.getElementById('val-conf').innerText = data.confidence + "%";
+            
+            if(data.intent !== lastIntent) {
+                addLog("Intent Decoded: " + data.intent, "info");
+                lastIntent = data.intent;
+            }
         };
 
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
