@@ -176,7 +176,7 @@
             function log(msg, color="#888") {
                 const div = document.createElement('div');
                 div.style.color = color;
-                div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                div.innerHTML = "[" + new Date().toLocaleTimeString() + "] " + msg;
                 logFeed.prepend(div);
                 if(logFeed.children.length > 15) logFeed.lastChild.remove();
             }
