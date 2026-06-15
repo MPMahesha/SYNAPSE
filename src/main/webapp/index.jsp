@@ -276,19 +276,18 @@
                 brainPositions[i*3] = 4 * Math.cos(theta) * Math.sin(phi);
                 brainPositions[i*3+1] = 5 * Math.sin(theta) * Math.sin(phi);
                 brainPositions[i*3+2] = 4 * Math.cos(phi);
-                // Add folds
                 const noise = Math.sin(brainPositions[i*3]*2) * 0.5;
                 brainPositions[i*3] += noise;
             }
 
-            // Shape 2: Neuron (Center cluster + long dendrites)
+            // Shape 2: Neuron
             for(let i=0; i<count; i++) {
-                if(i < 1000) { // Soma
+                if(i < 1000) { 
                     const r = Math.random() * 2;
                     neuronPositions[i*3] = (Math.random()-0.5) * r;
                     neuronPositions[i*3+1] = (Math.random()-0.5) * r;
                     neuronPositions[i*3+2] = (Math.random()-0.5) * r;
-                } else { // Dendrites
+                } else { 
                     const branch = i % 12;
                     const angle = (branch / 12) * Math.PI * 2;
                     const len = 5 + Math.random() * 10;
@@ -298,7 +297,7 @@
                 }
             }
 
-            // Shape 3: Chip (Square grid)
+            // Shape 3: Chip
             const gridSize = Math.floor(Math.sqrt(count));
             for(let i=0; i<count; i++) {
                 const ix = i % gridSize;
@@ -308,58 +307,45 @@
                 chipPositions[i*3+2] = Math.sin(ix/2) * Math.cos(iy/2) * 0.5;
             }
 
-            // Initial State
-            for(let i=0; i<count*3; i++) positions[i] = brainPositions[i];
+            // Legacy Structures
+            const brainMeshGeo = new THREE.SphereGeometry(3.5, 64, 64);
+            const brainMeshMat = new THREE.MeshStandardMaterial({ color: 0xBD00FF, roughness: 0.22, metalness: 0.3, emissive: 0x110022 });
+            const brainMesh = new THREE.Mesh(brainMeshGeo, brainMeshMat);
+            scene.add(brainMesh);
 
+            const neuronGroup = new THREE.Group();
+            for(let i=0; i<12; i++) {
+                const angle = (i/12) * Math.PI * 2;
+                const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0), new THREE.Vector3(Math.cos(angle)*1.5, Math.sin(angle)*1.5, Math.random()), new THREE.Vector3(Math.cos(angle)*4, Math.sin(angle)*4, Math.random()*2)]);
+                neuronGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 32, 0.05, 8, false), brainMeshMat));
+            }
+            neuronGroup.position.set(15, 0, -10);
+            scene.add(neuronGroup);
+
+            const skullGroup = new THREE.Group();
+            const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00F0FF, transparent: true, opacity: 0.3 });
+            for(let i=0; i<12; i++) {
+                const points = [];
+                for(let j=0; j<20; j++) points.push(new THREE.Vector3(Math.sin(j/5)*3 + (Math.random()*0.2), j/2, Math.cos(j/5)*3 + i*0.1));
+                skullGroup.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 64, 0.015, 8, false), cyanMat));
+            }
+            skullGroup.position.set(-15, 0, -15);
+            scene.add(skullGroup);
+
+            // Particles Initial
+            for(let i=0; i<count*3; i++) positions[i] = brainPositions[i];
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            const material = new THREE.PointsMaterial({ 
-                color: 0xBD00FF, 
-                size: 0.08, 
-                transparent: true, 
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending
-            });
-            
-            const points = new THREE.Points(geometry, material);
-            scene.add(points);
+            const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xBD00FF, size: 0.08, transparent: true, opacity: 0.8 }));
+            scene.add(particles);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            const point = new THREE.PointLight(0x00F0FF, 1.5);
+            point.position.set(5, 5, 5);
+            scene.add(ambient, point);
 
             camera.position.z = 15;
 
-            // GSAP ScrollTrigger Integration
-            gsap.registerPlugin(ScrollTrigger);
-            
-            const mainTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: ".scroll-container",
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 1.5
-                }
-            });
-
-            // Morph to Neuron
-            mainTl.to(points.geometry.attributes.position.array, {
-                endArray: neuronPositions,
-                duration: 2,
-                onUpdate: () => points.geometry.attributes.position.needsUpdate = true
-            }, 0);
-            
-            // Color Transition to Cyan
-            mainTl.to(material.color, {
-                r: 0, g: 0.94, b: 1, // #00F0FF
-                duration: 2
-            }, 1);
-
-            // Morph to Chip
-            mainTl.to(points.geometry.attributes.position.array, {
-                endArray: chipPositions,
-                duration: 2,
-                onUpdate: () => points.geometry.attributes.position.needsUpdate = true
-            }, 2);
-
-            // Interaction
             let mouseX = 0, mouseY = 0;
             document.addEventListener('mousemove', (e) => {
                 mouseX = (e.clientX - window.innerWidth / 2) / 100;
@@ -368,22 +354,43 @@
 
             function animate() {
                 requestAnimationFrame(animate);
-                points.rotation.y += 0.002;
-                points.rotation.x += (mouseY - points.rotation.x) * 0.05;
-                points.rotation.y += (mouseX - points.rotation.y) * 0.05;
+                const time = performance.now() * 0.001;
+                
+                // Legacy Deformation
+                const pos = brainMesh.geometry.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    const v = new THREE.Vector3().fromBufferAttribute(pos, i).normalize();
+                    const n = Math.sin(v.x*3 + time) * Math.cos(v.y*3 + time) * 0.15;
+                    const scale = 3.5 + n;
+                    pos.setXYZ(i, v.x*scale, v.y*scale, v.z*scale);
+                }
+                pos.needsUpdate = true;
+
+                brainMesh.rotation.y += 0.002;
+                neuronGroup.rotation.z -= 0.001;
+                skullGroup.rotation.y += 0.001;
+                particles.rotation.y += 0.001;
+
+                scene.rotation.x += (mouseY - scene.rotation.x) * 0.05;
+                scene.rotation.y += (mouseX - scene.rotation.y) * 0.05;
                 renderer.render(scene, camera);
             }
             animate();
 
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            gsap.registerPlugin(ScrollTrigger);
+            const tl = gsap.timeline({ scrollTrigger: { trigger: ".scroll-container", start: "top top", end: "bottom bottom", scrub: 1.5 } });
+            
+            // Particle Morphing
+            tl.to(particles.geometry.attributes.position.array, { endArray: neuronPositions, duration: 2, onUpdate: () => particles.geometry.attributes.position.needsUpdate = true }, 0)
+              .to(particles.geometry.attributes.position.array, { endArray: chipPositions, duration: 2, onUpdate: () => particles.geometry.attributes.position.needsUpdate = true }, 2);
 
-        } catch (e) {
-            console.error("Three.js Safeguard:", e);
-        }
+            // Legacy Transitions
+            tl.to(brainMesh.position, { x: -10, z: -10, duration: 1 }, 0)
+              .to(neuronGroup.position, { x: 0, y: 0, z: 0, duration: 1 }, 0.5)
+              .to(skullGroup.position, { x: 0, y: 0, z: -5, duration: 1 }, 1.5);
+
+            window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        } catch (e) { console.error("Safeguard:", e); }
     </script>
 </body>
 </html>
