@@ -10,8 +10,10 @@
 </head>
 <body class="d-flex align-items-center min-vh-100">
 
-<div id="custom-cursor"></div>
-<a href="${pageContext.request.contextPath}/index.jsp" class="back-home" title="Return to Portal"><i class="bi bi-arrow-left-circle-fill"></i></a>
+<!-- Escape Hatch to Main Portal -->
+<a href="${pageContext.request.contextPath}/index.jsp" class="back-home" title="Return to SYNAPSE Portal">
+    <i class="bi bi-arrow-left-circle-fill"></i>
+</a>
 
 <div class="container">
     <div class="row justify-content-center">
