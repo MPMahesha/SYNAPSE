@@ -35,7 +35,7 @@
 
         <section id="auth">
             <div class="auth-panel">
-                <h2 style="margin-top: 0; letter-spacing: 2px;">AUTHORIZATION</h2>
+                <h2 style="margin-top: 0; letter-spacing: 2px;">NEURAL ACCESS</h2>
                 <% if(request.getParameter("error") != null) { %>
                     <div class="error-overlay">Handshake Failed: <%= request.getParameter("error").replace("_", " ") %></div>
                 <% } %>
@@ -44,6 +44,9 @@
                     <input type="password" name="password" placeholder="SECURITY KEY" required>
                     <button type="submit">Establish Connection</button>
                 </form>
+                <div style="margin-top: 20px; font-size: 0.7rem; opacity: 0.6;">
+                    NEW SUBJECT? <a href="auth/register" style="color: var(--cyan); text-decoration: none; font-weight: bold;">PROVISION IDENTITY</a>
+                </div>
             </div>
         </section>
 

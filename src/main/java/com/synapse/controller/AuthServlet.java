@@ -48,23 +48,24 @@ public class AuthServlet extends HttpServlet {
         }
 
         try {
-            // Aligned with (id, email, password, role) schema
-            String query = "SELECT email, password, role FROM users WHERE email = ?";
+            String query = "SELECT id, email, password, role FROM users WHERE email = ?";
             try (Connection conn = DBConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(query)) {
                 ps.setString(1, email);
                 ResultSet rs = ps.executeQuery();
-                
+
                 if (rs.next()) {
+                    int userId = rs.getInt("id");
                     String storedPassword = rs.getString("password");
-                    String role = rs.getString("role"); // ENUM: 'CLINICIAN' or 'ENGINEER'
-                    
+                    String role = rs.getString("role");
+
                     if (storedPassword.equals(password)) {
                         HttpSession session = request.getSession(true);
-                        session.setAttribute("user", email);
-                        session.setAttribute("role", role);
-                        
-                        response.sendRedirect(request.getContextPath() + ("/CLINICIAN".equalsIgnoreCase(role) ? "/dashboard/clinician" : "/dashboard/engineer"));
+                        session.setAttribute("userId", userId);
+                        session.setAttribute("userEmail", email);
+                        session.setAttribute("userRole", role.toUpperCase());
+
+                        response.sendRedirect(request.getContextPath() + "/dashboard.jsp");
                     } else {
                         forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid security credentials");
                     }
@@ -72,8 +73,11 @@ public class AuthServlet extends HttpServlet {
                     forwardWithError(request, response, "/WEB-INF/views/login.jsp", "Invalid security credentials");
                 }
             }
+        } catch (SQLException e) {
+            System.err.println("Database transaction failed: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/index.jsp?error=db_failure");
         } catch (Exception e) {
-            System.err.println("Subsystem Exception: " + e.getMessage());
+            System.err.println("Authentication subsystem exception: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/index.jsp?error=auth_subsystem_offline");
         }
     }
