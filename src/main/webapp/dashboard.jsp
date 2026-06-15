@@ -234,20 +234,73 @@
         function toggleModal(id) { document.getElementById('modal-overlay').style.display = 'block'; document.getElementById(id).style.display = 'block'; }
         function closeAllModals() { document.getElementById('modal-overlay').style.display = 'none'; document.querySelectorAll('.panel[style*="display: none"]').forEach(p => p.style.display = 'none'); document.getElementById('profile-modal').style.display = 'none'; }
 
-        // --- Three.js Atmosphere ---
+        // --- Three.js Atmosphere (Legacy Main Dashboard Assets) ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        const pCount = 1000;
-        const pGeo = new THREE.BufferGeometry();
-        const pPos = new Float32Array(pCount * 3);
-        for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random() - 0.5) * 80;
-        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-        const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0xBD00FF, size: 0.15, transparent: true, opacity: 0.5 }));
-        scene.add(particles);
-        camera.position.z = 30;
-        function animate() { requestAnimationFrame(animate); particles.rotation.y += 0.0002; renderer.render(scene, camera); }
+
+        // meshA: Brain (Spherical Harmonics)
+        const brainGeo = new THREE.SphereGeometry(4, 128, 128);
+        const brainPos = brainGeo.attributes.position;
+        const brainMat = new THREE.MeshStandardMaterial({ color: 0xBD00FF, roughness: 0.22, metalness: 0.3, emissive: 0x110022 });
+        const meshA = new THREE.Mesh(brainGeo, brainMat);
+        scene.add(meshA);
+
+        // meshB: Neuron (Soma + Dendrites)
+        const meshB = new THREE.Group();
+        const soma = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), brainMat);
+        meshB.add(soma);
+        for(let i=0; i<12; i++) {
+            const angle = (i/12) * Math.PI * 2;
+            const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0), new THREE.Vector3(Math.cos(angle)*1.5, Math.sin(angle)*1.5, Math.random()), new THREE.Vector3(Math.cos(angle)*4, Math.sin(angle)*4, Math.random()*2)]);
+            meshB.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 32, 0.05, 8, false), brainMat));
+        }
+        meshB.position.set(12, 5, -15);
+        scene.add(meshB);
+
+        // meshC: Cybernetic Skull (Cyan Splines)
+        const meshC = new THREE.Group();
+        const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00F0FF, transparent: true, opacity: 0.4 });
+        for(let i=0; i<12; i++) {
+            const points = [];
+            for(let j=0; j<20; j++) {
+                const p = j/20;
+                points.push(new THREE.Vector3(Math.sin(p*Math.PI)*3 + (Math.random()-0.5)*0.2, Math.cos(p*Math.PI)*4, Math.sin(p*Math.PI*2)*1.5 + i*0.2));
+            }
+            meshC.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 64, 0.02, 8, false), cyanMat));
+        }
+        meshC.position.set(-15, -5, -20);
+        scene.add(meshC);
+
+        // Lighting
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+        const point = new THREE.PointLight(0x00F0FF, 1.5);
+        point.position.set(5, 5, 5);
+        scene.add(ambient, point);
+
+        camera.position.z = 25;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = performance.now() * 0.001;
+
+            // Brain Wave Deformation
+            for(let i=0; i<brainPos.count; i++) {
+                const v = new THREE.Vector3().fromBufferAttribute(brainPos, i).normalize();
+                const noise = Math.sin(v.x*3 + time) * Math.cos(v.y*3 + time) * 0.15;
+                const sagittal = Math.abs(v.x) < 0.15 ? -0.2 : 0;
+                const scale = 4 + noise + sagittal;
+                brainPos.setXYZ(i, v.x*scale, v.y*scale, v.z*scale);
+            }
+            brainPos.needsUpdate = true;
+
+            meshA.rotation.y += 0.002;
+            meshB.rotation.z -= 0.001;
+            meshC.rotation.y += 0.0005;
+
+            renderer.render(scene, camera);
+        }
         animate();
 
         // --- Chart.js EEG Stream ---
