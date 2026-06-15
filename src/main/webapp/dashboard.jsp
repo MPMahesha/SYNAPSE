@@ -17,13 +17,15 @@
         header { 
             grid-column: 1 / span 3; background: var(--panel); border: 1px solid rgba(189, 0, 255, 0.3); 
             display: flex; align-items: center; justify-content: space-between; padding: 0 30px; backdrop-filter: blur(20px); 
+            position: relative; z-index: 5000;
         }
 
-        .profile-menu { position: relative; z-index: 1000; }
+        .profile-menu { position: relative; z-index: 5001; }
         .profile-btn { background: linear-gradient(45deg, var(--accent), var(--cyan)); padding: 6px 18px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 900; color: #fff; border: none; }
         .dropdown { 
             position: absolute; top: 100%; right: 0; background: #0a0a12; border: 1px solid var(--cyan); 
             display: none; width: 220px; margin-top: 10px; box-shadow: 0 10px 40px rgba(0,240,255,0.2);
+            z-index: 6000;
         }
         .dropdown div, .dropdown a { display: block; padding: 15px 25px; color: #fff; text-decoration: none; font-size: 0.8rem; border-bottom: 1px solid #1a1a25; cursor: pointer; }
         .dropdown div:hover, .dropdown a:hover { background: rgba(0, 240, 255, 0.1); color: var(--cyan); }
