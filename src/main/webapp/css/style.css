@@ -26,8 +26,13 @@ body {
 }
 
 /* Custom Tactical Cursor */
-body, a, button, select, input, .btn-synapse {
+body, a, button, select, .btn-synapse {
     cursor: none !important;
+}
+
+/* Restore I-Beam for Inputs but keep custom cursor tracking */
+input, textarea {
+    cursor: text !important;
 }
 
 #custom-cursor {
@@ -38,7 +43,7 @@ body, a, button, select, input, .btn-synapse {
     border-radius: 50%;
     pointer-events: none;
     transform: translate(-50%, -50%);
-    z-index: 10000;
+    z-index: 20000; /* Extremely high to stay above modals and inputs */
     box-shadow: 0 0 15px var(--neon-cyan), inset 0 0 5px var(--neon-cyan);
     transition: width 0.2s, height 0.2s, border-color 0.2s, box-shadow 0.2s;
     background: transparent;
