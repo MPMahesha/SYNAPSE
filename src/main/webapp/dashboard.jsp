@@ -202,13 +202,20 @@
     <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000;" onclick="closeAllModals()"></div>
     <div id="profile-modal" class="panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; z-index: 2001; border-color: var(--cyan);">
         <h2>SUBJECT IDENTITY PROVISION</h2>
-        <div style="font-size: 0.9rem; line-height: 2;">
-            <p>NAME: MPMahesha_Subject_001</p>
-            <p>ID: NS-2026-X49</p>
+        <form action="api/update-profile" method="POST" style="font-size: 0.9rem; line-height: 2;">
+            <p>NAME: <span style="color: var(--cyan);">MPMahesha_Subject_001</span></p>
+            <p>ID: <span style="color: var(--cyan);">NS-2026-X49</span></p>
             <p>ROLE: <%= session.getAttribute("userRole") %></p>
-            <p>EMAIL: <%= session.getAttribute("userEmail") %></p>
-        </div>
-        <button onclick="closeAllModals()" style="background: var(--cyan); border: none; padding: 12px; margin-top: 20px; font-weight: bold; cursor: pointer;">CLOSE</button>
+            <div class="mb-3">
+                <label class="form-label">IDENTITY EMAIL:</label>
+                <input type="email" name="email" class="form-control bg-dark text-white border-info" 
+                       value="<%= session.getAttribute("userEmail") %>" required>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" style="background: var(--accent); border: none; padding: 12px; flex: 1; font-weight: bold; cursor: pointer; color: #fff;">SYNC UPDATES</button>
+                <button type="button" onclick="closeAllModals()" style="background: var(--dim); border: none; padding: 12px; flex: 1; font-weight: bold; cursor: pointer;">CLOSE</button>
+            </div>
+        </form>
     </div>
 
     <script>
